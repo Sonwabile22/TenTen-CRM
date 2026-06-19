@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TenTen CRM — Paper Towel Management</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --forest:       #13271F;
+    --forest-mid:   #1E3D2C;
+    --forest-light: #274D37;
+    --forest-muted: rgba(255,255,255,0.45);
+    --forest-faint: rgba(255,255,255,0.08);
+    --accent:       #4CAF7D;
+    --accent-glow:  rgba(76,175,125,0.18);
+    --white:        #FFFFFF;
+    --bg:           #F5F7F5;
+    --ink:          #141A14;
+    --mid:          #5A6B5A;
+    --rule:         #E0E8E0;
+    --card:         #FFFFFF;
+    --shadow:       0 1px 3px rgba(19,39,31,0.07), 0 2px 8px rgba(19,39,31,0.04);
+    --shadow-lg:    0 4px 20px rgba(19,39,31,0.12), 0 1px 4px rgba(19,39,31,0.06);
+    --green:        #16A34A;
+    --green-soft:   #DCFCE7;
+    --orange:       #C2410C;
+    --orange-soft:  #FFF1E6;
+    --red:          #DC2626;
+    --red-soft:     #FEE2E2;
+    --yellow:       #B45309;
+    --yellow-soft:  #FEF3C7;
+    --blue:         #1D4ED8;
+    --blue-soft:    #EFF6FF;
+    --sidebar-w:    220px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* ── SIDEBAR ─────────────────────────────────────────── */
+  aside {
+    width: var(--sidebar-w);
+    background: var(--forest);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 50;
+  }
+
+  .sidebar-brand {
+    padding: 1.6rem 1.4rem 1.2rem;
+    border-bottom: 1px solid var(--forest-faint);
+  }
+
+  .brand-name {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: var(--white);
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+
+  .brand-tagline {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-top: 4px;
+  }
+
+  .sidebar-nav {
+    padding: 1rem 0.75rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .nav-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--forest-muted);
+    padding: 0.6rem 0.6rem 0.3rem;
+    margin-top: 0.5rem;
+  }
+
+  .nav-btn {
+    background: none;
+    border: none;
+    border-radius: 7px;
+    color: rgba(255,255,255,0.62);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    transition: background 0.15s, color 0.15s;
+    width: 100%;
+  }
+
+  .nav-btn:hover {
+    background: var(--forest-faint);
+    color: #fff;
+  }
+
+  .nav-btn.active {
+    background: var(--accent-glow);
+    color: #fff;
+    font-weight: 600;
+    border-left: 3px solid var(--accent);
+    padding-left: calc(0.75rem - 3px);
+  }
+
+  .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+
+  .sidebar-footer {
+    padding: 1rem 1.4rem;
+    border-top: 1px solid var(--forest-faint);
+  }
+
+  .sidebar-clock {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--forest-muted);
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+  }
+
+  /* ── MAIN AREA ───────────────────────────────────────── */
+  .main-wrap {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topbar {
+    background: var(--white);
+    border-bottom: 1px solid var(--rule);
+    padding: 0.85rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+
+  .topbar-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  .topbar-sub {
+    font-size: 0.75rem;
+    color: var(--mid);
+    margin-top: 1px;
+  }
+
+  main {
+    padding: 1.75rem 2rem;
+    max-width: 1200px;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── STAT CARDS ──────────────────────────────────────── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 1rem 1.2rem 0.9rem;
+    box-shadow: var(--shadow);
+  }
+
+  .stat-label {
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 0.4rem;
+  }
+
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--forest);
+  }
+
+  .stat-value.green  { color: var(--green); }
+  .stat-value.orange { color: var(--orange); }
+  .stat-value.blue   { color: var(--blue); }
+
+  /* ── CARDS ───────────────────────────────────────────── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+    margin-bottom: 1rem;
+    color: var(--forest);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* ── PAGE HEADER ─────────────────────────────────────── */
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  /* ── TABLE ───────────────────────────────────────────── */
+  .table-wrap { overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+
+  thead tr { border-bottom: 2px solid var(--rule); }
+
+  th {
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mid);
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+    white-space: nowrap;
+    background: #FAFCFA;
+  }
+
+  td {
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #F7FBF7; }
+
+  /* ── BADGES ──────────────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    border-radius: 4px;
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+
+  .badge:hover { opacity: 0.75; }
+  .badge-green  { background: var(--green-soft);  color: var(--green); }
+  .badge-orange { background: var(--orange-soft); color: var(--orange); }
+  .badge-red    { background: var(--red-soft);    color: var(--red); }
+  .badge-yellow { background: var(--yellow-soft); color: var(--yellow); }
+  .badge-blue   { background: var(--blue-soft);   color: var(--blue); }
+
+  /* ── FORM ────────────────────────────────────────────── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--mid);
+  }
+
+  input, select, textarea {
+    background: #FAFCFA;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    padding: 0.55rem 0.75rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    width: 100%;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+    outline: none;
+  }
+
+  textarea { resize: vertical; min-height: 60px; }
+
+  /* ── BUTTONS ─────────────────────────────────────────── */
+  .btn {
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 0.55rem 1.1rem;
+    transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .btn:hover { opacity: 0.88; }
+  .btn:active { transform: scale(0.98); }
+
+  .btn-primary { background: var(--forest); color: #fff; }
+  .btn-primary:hover { background: var(--forest-light); opacity: 1; }
+  .btn-accent  { background: var(--accent); color: #fff; }
+  .btn-success { background: var(--green); color: #fff; }
+  .btn-danger  { background: var(--red); color: #fff; }
+  .btn-orange  { background: var(--orange); color: #fff; }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--mid);
+  }
+
+  /* ── SPECIALS ────────────────────────────────────────── */
+  .special-card {
+    background: var(--orange-soft);
+    border: 1px dashed #E07040;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    position: relative;
+  }
+
+  .special-name { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem; }
+  .special-detail { font-size: 0.76rem; color: var(--mid); }
+  .special-price { font-family: 'DM Mono', monospace; font-size: 0.95rem; font-weight: 500; color: var(--orange); margin-top: 4px; }
+
+  /* ── EMPTY STATE ─────────────────────────────────────── */
+  .empty { text-align: center; padding: 3rem 1rem; color: var(--mid); }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .empty-text { font-size: 0.85rem; }
+
+  /* ── SECTION DIVIDER ─────────────────────────────────── */
+  .section-divider {
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mid);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.4rem;
+    margin: 1.25rem 0 0.75rem;
+  }
+
+  /* ── MONTH BAR ───────────────────────────────────────── */
+  .month-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  /* ── PRICE ROW ───────────────────────────────────────── */
+  .price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--rule);
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .price-row:last-child { border-bottom: none; }
+  .price-name { font-weight: 600; font-size: 0.85rem; }
+  .price-mono { font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--mid); }
+
+  /* ── MODAL ───────────────────────────────────────────── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(19,39,31,0.45);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    max-width: 520px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--forest);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--mid);
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+  .modal-close:hover { background: var(--rule); }
+
+  .modal-body { padding: 1.25rem 1.5rem; }
+  .modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  /* ── TOAST ───────────────────────────────────────────── */
+  #toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--forest);
+    color: #fff;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    border-left: 3px solid var(--accent);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 999;
+    max-width: 300px;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── REPORT SUMMARY ──────────────────────────────────── */
+  .report-summary {
+    background: var(--forest);
+    color: #fff;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .report-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.2rem;
+  }
+  .report-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.85rem;
+    margin-top: 1rem;
+  }
+  .report-stat {
+    background: rgba(255,255,255,0.07);
+    border-top: 2px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.75rem;
+  }
+  .report-stat-label {
+    font-size: 0.63rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    margin-bottom: 0.2rem;
+  }
+  .report-stat-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  /* ── ACTIONS CELL ────────────────────────────────────── */
+  .actions-cell { display: flex; gap: 0.4rem; align-items: center; }
+
+  .check-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  input[type="checkbox"] {
+    width: 15px; height: 15px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .total-box {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #F0F7F2;
+    border: 1px solid #C3DCC9;
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+  }
+
+  @media (max-width: 700px) {
+    aside { width: 56px; }
+    .brand-name, .brand-tagline, .nav-btn span, .nav-label, .sidebar-clock { display: none; }
+    .main-wrap { margin-left: 56px; }
+    main { padding: 1rem; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside>
+  <div class="sidebar-brand">
+    <div class="brand-name">TenTen</div>
+    <div class="brand-tagline">Paper Towel CRM</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-label">Menu</div>
+    <button class="nav-btn active" onclick="showPage('dashboard', this)">
+      <span class="nav-icon">📊</span><span>Dashboard</span>
+    </button>
+    <button class="nav-btn" onclick="showPage('orders', this)">
+      <span class="nav-icon">📋</span><span>Orders</span>
+    </button>
+    <button class="nav-btn" onclick="showPage('pricing', this)">
+      <span class="nav-icon">🏷️</span><span>Pricing & Specials</span>
+    </button>
+    <button class="nav-btn" onclick="showPage('report', this)">
+      <span class="nav-icon">📄</span><span>Monthly Report</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-clock" id="clock"></div>
+  </div>
+</aside>
+
+<!-- MAIN WRAP -->
+<div class="main-wrap">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-sub" id="topbar-sub">Your TenTen business at a glance</div>
+    </div>
+    <div id="topbar-action"></div>
+  </div>
+
+  <main>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="dash-stats"></div>
+      <div class="card">
+        <div class="card-title">🧻 Recent Orders</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Customer</th><th>Product</th><th>Total</th>
+                <th>Paid</th><th>Delivered</th><th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="dash-recent"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="page" id="page-orders">
+      <div class="month-bar">
+        <label style="margin:0;text-transform:none;font-size:0.82rem;font-weight:500;color:var(--mid)">Filter:</label>
+        <input type="month" id="order-month-filter" onchange="renderOrders()" style="width:auto">
+        <button class="btn btn-ghost" onclick="clearMonthFilter()">Clear filter</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Customer</th><th>Product</th><th>Qty</th>
+                <th>Unit</th><th>Special</th><th>Total</th>
+                <th>Paid</th><th>Delivered</th><th>Date</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody"></tbody>
+          </table>
+        </div>
+        <div id="orders-empty" class="empty" style="display:none">
+          <div class="empty-icon">📦</div>
+          <div class="empty-text">No orders yet. Use the button above to add your first order.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRICING & SPECIALS -->
+    <div class="page" id="page-pricing">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;">
+        <!-- Base Prices -->
+        <div class="card">
+          <div class="card-title">💰 Base Roll Prices</div>
+          <div id="price-list"></div>
+          <div class="section-divider" style="margin-top:1rem">Add / Edit Product</div>
+          <div class="form-grid" style="margin-top:0.75rem">
+            <div class="form-group">
+              <label>Product Name</label>
+              <input type="text" id="prod-name" placeholder="e.g. Single Roll">
+            </div>
+            <div class="form-group">
+              <label>Price (R)</label>
+              <input type="number" id="prod-price" placeholder="0.00" step="0.01" min="0">
+            </div>
+          </div>
+          <div style="margin-top:0.75rem;display:flex;gap:0.5rem;">
+            <button class="btn btn-primary" onclick="saveProduct()">Save Product</button>
+            <button class="btn btn-ghost" onclick="clearProductForm()">Clear</button>
+          </div>
+        </div>
+
+        <!-- Specials -->
+        <div class="card">
+          <div class="card-title">🏷️ Active Specials</div>
+          <div id="specials-list"></div>
+          <div class="section-divider" style="margin-top:1rem">Create New Special</div>
+          <div class="form-grid" style="margin-top:0.75rem">
+            <div class="form-group full">
+              <label>Special Name</label>
+              <input type="text" id="sp-name" placeholder="e.g. Weekend Bundle">
+            </div>
+            <div class="form-group full">
+              <label>Applies to Product</label>
+              <select id="sp-product"><option value="">— All products —</option></select>
+            </div>
+            <div class="form-group">
+              <label>Special Price (R) <span style="font-weight:400;text-transform:none;letter-spacing:0">(overrides base)</span></label>
+              <input type="number" id="sp-price" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+              <label>Discount % <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+              <input type="number" id="sp-discount" placeholder="e.g. 10" min="0" max="100">
+            </div>
+            <div class="form-group full">
+              <label>Description</label>
+              <textarea id="sp-desc" placeholder="e.g. Buy 2 get 10% off…"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Valid From</label>
+              <input type="date" id="sp-from">
+            </div>
+            <div class="form-group">
+              <label>Valid To</label>
+              <input type="date" id="sp-to">
+            </div>
+            <div class="form-group full">
+              <label class="check-wrap">
+                <input type="checkbox" id="sp-active" checked> Special is currently active
+              </label>
+            </div>
+          </div>
+          <div style="margin-top:0.75rem;display:flex;gap:0.5rem;">
+            <button class="btn btn-orange" onclick="saveSpecial()">Save Special</button>
+            <button class="btn btn-ghost" onclick="clearSpecialForm()">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORT -->
+    <div class="page" id="page-report">
+      <div class="month-bar">
+        <label style="margin:0;text-transform:none;font-size:0.82rem;font-weight:500;color:var(--mid)">Month:</label>
+        <input type="month" id="report-month" onchange="renderReport()">
+        <button class="btn btn-primary" onclick="downloadPDF()">⬇ Download PDF</button>
+      </div>
+      <div id="report-content"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ORDER MODAL -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">New Order</div>
+      <button class="modal-close" onclick="closeOrderModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Customer Name</label>
+          <input type="text" id="o-customer" placeholder="Customer name">
+        </div>
+        <div class="form-group">
+          <label>Product</label>
+          <select id="o-product" onchange="onProductChange()"><option value="">— Select —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input type="number" id="o-qty" min="1" value="1" onchange="calcOrderTotal()">
+        </div>
+        <div class="form-group full">
+          <label>Apply Special (optional)</label>
+          <select id="o-special" onchange="calcOrderTotal()"><option value="">— No special —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Order Date</label>
+          <input type="date" id="o-date">
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <input type="text" id="o-notes" placeholder="Optional notes">
+        </div>
+        <div class="form-group">
+          <label class="check-wrap"><input type="checkbox" id="o-paid"> Paid</label>
+        </div>
+        <div class="form-group">
+          <label class="check-wrap"><input type="checkbox" id="o-delivered"> Delivered</label>
+        </div>
+      </div>
+      <div class="total-box">
+        <div style="font-size:0.67rem;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--mid);margin-bottom:0.3rem;">Order Total</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--forest);" id="o-total-display">R 0.00</div>
+        <div style="font-size:0.75rem;color:var(--mid);margin-top:0.2rem;" id="o-total-breakdown"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeOrderModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveOrder()">Save Order</button>
+    </div>
+  </div>
+</div>
+
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;background:rgba(19,39,31,0.7);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:1rem;">
+  <div style="background:#fff;border-radius:12px;padding:2rem 2.5rem;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+    <div style="font-size:2rem;margin-bottom:0.75rem;">🧻</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#13271F;margin-bottom:0.25rem;">Loading TenTen CRM</div>
+    <div style="font-size:0.8rem;color:#5A6B5A;">Fetching your data…</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let orders   = [];
+let products = [
+  { id: 'p1', name: 'Single Roll',  price: 15  },
+  { id: 'p2', name: 'Pack of 6',   price: 80  },
+  { id: 'p3', name: 'Pack of 12',  price: 150 },
+];
+let specials = [];
+let editingOrderId   = null;
+let editingProductId = null;
+let editingSpecialId = null;
+
+// ─── PERSISTENT STORAGE (cross-device via window.storage) ────────────────────
+async function save() {
+  try {
+    await window.storage.set('tt-data', JSON.stringify({ orders, products, specials }));
+  } catch (e) {
+    console.error('Save failed:', e);
+    toast('⚠️ Save failed — check connection');
+  }
+}
+
+async function loadData() {
+  try {
+    const result = await window.storage.get('tt-data');
+    if (result && result.value) {
+      const data = JSON.parse(result.value);
+      if (data.orders)   orders   = data.orders;
+      if (data.products && data.products.length) products = data.products;
+      if (data.specials) specials = data.specials;
+    }
+  } catch (e) {
+    // No saved data yet — use defaults
+  }
+}
+
+// ─── CLOCK ───────────────────────────────────────────────────────────────────
+function updateClock() {
+  const d = new Date();
+  document.getElementById('clock').innerHTML =
+    d.toLocaleDateString('en-ZA',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) +
+    '<br>' + d.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+let toastT;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function fmt(n)    { return 'R ' + Number(n).toFixed(2); }
+function uid()     { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function today()   { return new Date().toISOString().slice(0,10); }
+function getProd(id) { return products.find(p => p.id === id); }
+function getSpec(id) { return specials.find(s => s.id === id); }
+
+function calcPrice(productId, specialId, qty = 1) {
+  const prod = getProd(productId);
+  if (!prod) return { unit: 0, total: 0, breakdown: '' };
+  let unit = prod.price, breakdown = '';
+  if (specialId) {
+    const sp = getSpec(specialId);
+    if (sp) {
+      if (sp.specialPrice) { unit = sp.specialPrice; breakdown = `Base: ${fmt(prod.price)} → Special: ${fmt(unit)}`; }
+      if (sp.discount)     { unit = unit - unit*(sp.discount/100); breakdown += (breakdown?' + ':'') + `${sp.discount}% off`; }
+    }
+  }
+  return { unit, total: unit * qty, breakdown };
+}
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+const pageMeta = {
+  dashboard: { title: 'Dashboard',          sub: 'Your TenTen business at a glance' },
+  orders:    { title: 'Orders',             sub: 'Log, track and update every order' },
+  pricing:   { title: 'Pricing & Specials', sub: 'Set base prices and manage promotions' },
+  report:    { title: 'Monthly Report',     sub: 'View and download end-of-month summaries' },
+};
+
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+
+  const m = pageMeta[id];
+  document.getElementById('topbar-title').textContent = m.title;
+  document.getElementById('topbar-sub').textContent   = m.sub;
+
+  const ta = document.getElementById('topbar-action');
+  if (id === 'orders') {
+    ta.innerHTML = '<button class="btn btn-primary" onclick="openOrderModal()">＋ New Order</button>';
+  } else {
+    ta.innerHTML = '';
+  }
+
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'orders')    renderOrders();
+  if (id === 'pricing')   renderPricing();
+  if (id === 'report')    renderReport();
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const total      = orders.reduce((s,o) => s+o.total, 0);
+  const paid       = orders.filter(o=>o.paid).reduce((s,o) => s+o.total, 0);
+  const unpaid     = total - paid;
+  const undelivered= orders.filter(o=>!o.delivered).length;
+  const mKey       = new Date().toISOString().slice(0,7);
+  const monthTotal = orders.filter(o=>o.date.startsWith(mKey)).reduce((s,o)=>s+o.total,0);
+
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Orders</div><div class="stat-value blue">${orders.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-value">${fmt(total)}</div></div>
+    <div class="stat-card"><div class="stat-label">Paid</div><div class="stat-value green">${fmt(paid)}</div></div>
+    <div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-value orange">${fmt(unpaid)}</div></div>
+    <div class="stat-card"><div class="stat-label">This Month</div><div class="stat-value blue">${fmt(monthTotal)}</div></div>
+    <div class="stat-card"><div class="stat-label">Pending Delivery</div><div class="stat-value orange">${undelivered}</div></div>
+  `;
+
+  const recent = [...orders].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,8);
+  const tbody  = document.getElementById('dash-recent');
+  if (!recent.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--mid);padding:2rem;">No orders yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = recent.map(o => {
+    const idx = orders.findIndex(x=>x.id===o.id) + 1;
+    return `<tr>
+      <td><span style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--mid)">#${String(idx).padStart(3,'0')}</span></td>
+      <td><strong>${o.customer}</strong></td>
+      <td style="font-size:0.78rem;color:var(--mid)">${getProd(o.productId)?.name||'—'}</td>
+      <td style="font-family:'DM Mono',monospace">${fmt(o.total)}</td>
+      <td><span class="badge ${o.paid?'badge-green':'badge-red'}" style="cursor:default">${o.paid?'✓ Paid':'Unpaid'}</span></td>
+      <td><span class="badge ${o.delivered?'badge-green':'badge-yellow'}" style="cursor:default">${o.delivered?'✓ Done':'Pending'}</span></td>
+      <td style="font-size:0.78rem;color:var(--mid)">${o.date}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── ORDERS ──────────────────────────────────────────────────────────────────
+function renderOrders() {
+  const filter = document.getElementById('order-month-filter').value;
+  let list = [...orders].sort((a,b)=>b.date.localeCompare(a.date));
+  if (filter) list = list.filter(o=>o.date.startsWith(filter));
+
+  const tbody = document.getElementById('orders-tbody');
+  const empty = document.getElementById('orders-empty');
+
+  if (!list.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = list.map(o => {
+    const idx  = orders.findIndex(x=>x.id===o.id) + 1;
+    const prod = getProd(o.productId);
+    const sp   = o.specialId ? getSpec(o.specialId) : null;
+    return `<tr>
+      <td><span style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--mid)">#${String(idx).padStart(3,'0')}</span></td>
+      <td><strong>${o.customer}</strong>${o.notes?`<br><span style="font-size:0.71rem;color:var(--mid)">${o.notes}</span>`:''}</td>
+      <td>${prod?.name||'—'}</td>
+      <td style="font-family:'DM Mono',monospace">${o.qty}</td>
+      <td style="font-family:'DM Mono',monospace">${fmt(o.unitPrice)}</td>
+      <td>${sp?`<span class="badge badge-orange">${sp.name}</span>`:'<span style="color:var(--mid);font-size:0.75rem">—</span>'}</td>
+      <td style="font-family:'DM Mono',monospace;font-weight:600">${fmt(o.total)}</td>
+      <td><span class="badge ${o.paid?'badge-green':'badge-red'}" title="Click to toggle" data-action="toggle-paid" data-id="${o.id}">${o.paid?'✓ Paid':'Unpaid'}</span></td>
+      <td><span class="badge ${o.delivered?'badge-green':'badge-yellow'}" title="Click to toggle" data-action="toggle-delivered" data-id="${o.id}">${o.delivered?'✓ Done':'Pending'}</span></td>
+      <td style="font-size:0.76rem;color:var(--mid);white-space:nowrap">${o.date}</td>
+      <td>
+        <div class="actions-cell">
+          <button class="btn btn-ghost" style="padding:0.28rem 0.6rem;font-size:0.74rem" data-action="edit-order" data-id="${o.id}">Edit</button>
+          <button class="btn btn-danger" style="padding:0.28rem 0.6rem;font-size:0.74rem" data-action="delete-order" data-id="${o.id}">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function clearMonthFilter() {
+  document.getElementById('order-month-filter').value = '';
+  renderOrders();
+}
+
+// toggle/delete handled by event delegation below
+
+function editOrder(id) {
+  const o = orders.find(o=>o.id===id);
+  if (!o) return;
+  editingOrderId = id;
+  populateModalDropdowns();
+  document.getElementById('modal-title').textContent = 'Edit Order';
+  document.getElementById('o-customer').value  = o.customer;
+  document.getElementById('o-product').value   = o.productId;
+  populateSpecialSelect(o.productId);
+  document.getElementById('o-special').value   = o.specialId || '';
+  document.getElementById('o-qty').value       = o.qty;
+  document.getElementById('o-date').value      = o.date;
+  document.getElementById('o-notes').value     = o.notes || '';
+  document.getElementById('o-paid').checked    = o.paid;
+  document.getElementById('o-delivered').checked = o.delivered;
+  calcOrderTotal();
+  document.getElementById('order-modal').classList.add('open');
+}
+
+// ─── ORDER MODAL ─────────────────────────────────────────────────────────────
+function populateModalDropdowns() {
+  const sel = document.getElementById('o-product');
+  sel.innerHTML = '<option value="">— Select product —</option>' +
+    products.map(p=>`<option value="${p.id}">${p.name} — ${fmt(p.price)}</option>`).join('');
+  document.getElementById('o-special').innerHTML = '<option value="">— No special —</option>';
+  document.getElementById('o-date').value = today();
+}
+
+function populateSpecialSelect(productId) {
+  const active = specials.filter(s=>s.active && (!s.productId || s.productId===productId));
+  document.getElementById('o-special').innerHTML =
+    '<option value="">— No special —</option>' +
+    active.map(s=>{
+      let lbl = s.name;
+      if (s.discount) lbl += ` (${s.discount}% off)`;
+      if (s.specialPrice) lbl += ` — ${fmt(s.specialPrice)}`;
+      return `<option value="${s.id}">${lbl}</option>`;
+    }).join('');
+}
+
+function onProductChange() {
+  populateSpecialSelect(document.getElementById('o-product').value);
+  calcOrderTotal();
+}
+
+function openOrderModal() {
+  editingOrderId = null;
+  document.getElementById('modal-title').textContent = 'New Order';
+  ['o-customer','o-qty','o-notes'].forEach(id => document.getElementById(id).value = id==='o-qty'?1:'');
+  document.getElementById('o-paid').checked = false;
+  document.getElementById('o-delivered').checked = false;
+  document.getElementById('o-total-display').textContent = 'R 0.00';
+  document.getElementById('o-total-breakdown').textContent = '';
+  populateModalDropdowns();
+  document.getElementById('order-modal').classList.add('open');
+}
+
+function closeOrderModal() {
+  document.getElementById('order-modal').classList.remove('open');
+  editingOrderId = null;
+}
+
+function calcOrderTotal() {
+  const productId = document.getElementById('o-product').value;
+  const specialId = document.getElementById('o-special').value;
+  const qty       = parseInt(document.getElementById('o-qty').value)||1;
+  const { unit, total, breakdown } = calcPrice(productId, specialId, qty);
+  document.getElementById('o-total-display').textContent    = fmt(total);
+  document.getElementById('o-total-breakdown').textContent  =
+    unit ? `${qty} × ${fmt(unit)}${breakdown?' · '+breakdown:''}` : '';
+}
+
+function saveOrder() {
+  const customer  = document.getElementById('o-customer').value.trim();
+  const productId = document.getElementById('o-product').value;
+  const qty       = parseInt(document.getElementById('o-qty').value)||1;
+  const specialId = document.getElementById('o-special').value;
+  const date      = document.getElementById('o-date').value;
+  const notes     = document.getElementById('o-notes').value.trim();
+  const paid      = document.getElementById('o-paid').checked;
+  const delivered = document.getElementById('o-delivered').checked;
+
+  if (!customer || !productId || !date) { toast('⚠️ Fill in customer, product, and date.'); return; }
+
+  const { unit, total } = calcPrice(productId, specialId, qty);
+  const order = { id: editingOrderId||uid(), customer, productId, qty, specialId, unitPrice:unit, total, date, notes, paid, delivered };
+
+  if (editingOrderId) {
+    const idx = orders.findIndex(o=>o.id===editingOrderId);
+    if (idx >= 0) orders[idx] = order;
+    toast('✓ Order updated');
+  } else {
+    orders.push(order);
+    toast('✓ Order saved');
+  }
+  save();
+  closeOrderModal();
+  renderOrders();
+  renderDashboard();
+}
+
+// ─── PRICING ─────────────────────────────────────────────────────────────────
+function renderPricing() {
+  const pl = document.getElementById('price-list');
+  pl.innerHTML = products.length ? products.map(p=>`
+    <div class="price-row">
+      <div class="price-name">${p.name}</div>
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <span class="price-mono">${fmt(p.price)}</span>
+        <button class="btn btn-ghost" style="padding:0.25rem 0.55rem;font-size:0.72rem" data-action="edit-product" data-id="${p.id}">Edit</button>
+        <button class="btn btn-danger" style="padding:0.25rem 0.55rem;font-size:0.72rem" data-action="delete-product" data-id="${p.id}">Delete</button>
+      </div>
+    </div>`).join('') :
+    '<div class="empty" style="padding:1rem"><div class="empty-text">No products yet.</div></div>';
+
+  const sl = document.getElementById('specials-list');
+  sl.innerHTML = specials.length ? specials.map(s=>{
+    const prod=getProd(s.productId);
+    let pi='';
+    if(s.specialPrice) pi+=`Special price: ${fmt(s.specialPrice)}`;
+    if(s.discount) pi+=(pi?' + ':'')+`${s.discount}% discount`;
+    return `<div class="special-card" style="${!s.active?'opacity:0.5':''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem">
+        <div>
+          <div class="special-name">${s.name}${!s.active?' <span style="font-size:0.68rem;color:var(--mid)">(inactive)</span>':''}</div>
+          <div class="special-detail">${prod?'For: '+prod.name:'All products'}</div>
+          ${s.desc?`<div class="special-detail">${s.desc}</div>`:''}
+          ${s.from||s.to?`<div class="special-detail">Valid: ${s.from||''}${s.from&&s.to?' → ':''}${s.to||''}</div>`:''}
+          <div class="special-price">${pi||'Custom pricing'}</div>
+        </div>
+        <div style="display:flex;gap:0.4rem;flex-shrink:0">
+          <button class="btn btn-ghost" style="padding:0.25rem 0.55rem;font-size:0.72rem" data-action="edit-special" data-id="${s.id}">Edit</button>
+          <button class="btn btn-danger" style="padding:0.25rem 0.55rem;font-size:0.72rem" data-action="delete-special" data-id="${s.id}">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') :
+    '<div class="empty" style="padding:1rem"><div class="empty-text">No specials yet.</div></div>';
+
+  document.getElementById('sp-product').innerHTML =
+    '<option value="">— All products —</option>' +
+    products.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+function saveProduct() {
+  const name  = document.getElementById('prod-name').value.trim();
+  const price = parseFloat(document.getElementById('prod-price').value);
+  if (!name || isNaN(price)) { toast('⚠️ Enter a name and price.'); return; }
+  if (editingProductId) {
+    const p = products.find(p=>p.id===editingProductId);
+    if (p) { p.name=name; p.price=price; }
+    editingProductId = null;
+    toast('✓ Product updated');
+  } else {
+    products.push({ id:uid(), name, price });
+    toast('✓ Product added');
+  }
+  save(); clearProductForm(); renderPricing();
+}
+
+function editProduct(id) {
+  const p = products.find(p=>p.id===id);
+  if (!p) return;
+  editingProductId = id;
+  document.getElementById('prod-name').value  = p.name;
+  document.getElementById('prod-price').value = p.price;
+}
+
+// deleteProduct handled by event delegation
+
+function clearProductForm() {
+  editingProductId = null;
+  document.getElementById('prod-name').value  = '';
+  document.getElementById('prod-price').value = '';
+}
+
+function saveSpecial() {
+  const name         = document.getElementById('sp-name').value.trim();
+  const productId    = document.getElementById('sp-product').value;
+  const specialPrice = parseFloat(document.getElementById('sp-price').value)||0;
+  const discount     = parseFloat(document.getElementById('sp-discount').value)||0;
+  const desc         = document.getElementById('sp-desc').value.trim();
+  const from         = document.getElementById('sp-from').value;
+  const to           = document.getElementById('sp-to').value;
+  const active       = document.getElementById('sp-active').checked;
+  if (!name) { toast('⚠️ Enter a special name.'); return; }
+  if (!specialPrice && !discount) { toast('⚠️ Enter a special price or discount %.'); return; }
+  const special = { id: editingSpecialId||uid(), name, productId, specialPrice, discount, desc, from, to, active };
+  if (editingSpecialId) {
+    const idx = specials.findIndex(s=>s.id===editingSpecialId);
+    if (idx>=0) specials[idx]=special;
+    editingSpecialId = null;
+    toast('✓ Special updated');
+  } else {
+    specials.push(special);
+    toast('✓ Special created');
+  }
+  save(); clearSpecialForm(); renderPricing();
+}
+
+function editSpecial(id) {
+  const s = specials.find(s=>s.id===id);
+  if (!s) return;
+  editingSpecialId = id;
+  document.getElementById('sp-name').value     = s.name;
+  document.getElementById('sp-price').value    = s.specialPrice||'';
+  document.getElementById('sp-discount').value = s.discount||'';
+  document.getElementById('sp-desc').value     = s.desc||'';
+  document.getElementById('sp-from').value     = s.from||'';
+  document.getElementById('sp-to').value       = s.to||'';
+  document.getElementById('sp-active').checked = s.active;
+  renderPricing();
+  document.getElementById('sp-product').value  = s.productId||'';
+}
+
+// deleteSpecial handled by event delegation
+
+function clearSpecialForm() {
+  editingSpecialId = null;
+  ['sp-name','sp-price','sp-discount','sp-desc','sp-from','sp-to'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('sp-active').checked = true;
+}
+
+// ─── REPORT ──────────────────────────────────────────────────────────────────
+function renderReport() {
+  const month     = document.getElementById('report-month').value;
+  const container = document.getElementById('report-content');
+  if (!month) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><div class="empty-text">Select a month to generate the report.</div></div>';
+    return;
+  }
+  const filtered   = orders.filter(o=>o.date.startsWith(month));
+  const monthLabel = new Date(month+'-01').toLocaleString('en-ZA',{month:'long',year:'numeric'});
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No orders for ${monthLabel}.</div></div>`;
+    return;
+  }
+  const totalRevenue = filtered.reduce((s,o)=>s+o.total,0);
+  const totalPaid    = filtered.filter(o=>o.paid).reduce((s,o)=>s+o.total,0);
+  const totalUnpaid  = totalRevenue - totalPaid;
+  const delivered    = filtered.filter(o=>o.delivered).length;
+  const rows         = [...filtered].sort((a,b)=>a.date.localeCompare(b.date));
+
+  container.innerHTML = `
+    <div class="report-summary">
+      <div class="report-title">TenTen — ${monthLabel}</div>
+      <div style="font-size:0.75rem;opacity:0.5">Paper Towel Sales Report</div>
+      <div class="report-grid">
+        <div class="report-stat"><div class="report-stat-label">Orders</div><div class="report-stat-value">${filtered.length}</div></div>
+        <div class="report-stat"><div class="report-stat-label">Revenue</div><div class="report-stat-value">${fmt(totalRevenue)}</div></div>
+        <div class="report-stat"><div class="report-stat-label">Paid</div><div class="report-stat-value">${fmt(totalPaid)}</div></div>
+        <div class="report-stat"><div class="report-stat-label">Outstanding</div><div class="report-stat-value">${fmt(totalUnpaid)}</div></div>
+        <div class="report-stat"><div class="report-stat-label">Delivered</div><div class="report-stat-value">${delivered}/${filtered.length}</div></div>
+      </div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>#</th><th>Date</th><th>Customer</th><th>Product</th><th>Qty</th>
+            <th>Unit</th><th>Special</th><th>Total</th><th>Paid</th><th>Delivered</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map((o,i)=>{
+              const prod=getProd(o.productId); const sp=o.specialId?getSpec(o.specialId):null;
+              return `<tr>
+                <td style="font-family:'DM Mono',monospace;color:var(--mid);font-size:0.74rem">${i+1}</td>
+                <td style="font-size:0.76rem;color:var(--mid)">${o.date}</td>
+                <td><strong>${o.customer}</strong></td>
+                <td>${prod?.name||'—'}</td>
+                <td style="font-family:'DM Mono',monospace">${o.qty}</td>
+                <td style="font-family:'DM Mono',monospace">${fmt(o.unitPrice)}</td>
+                <td>${sp?`<span class="badge badge-orange" style="cursor:default">${sp.name}</span>`:'—'}</td>
+                <td style="font-family:'DM Mono',monospace;font-weight:600">${fmt(o.total)}</td>
+                <td><span class="badge ${o.paid?'badge-green':'badge-red'}" style="cursor:default">${o.paid?'✓ Paid':'Unpaid'}</span></td>
+                <td><span class="badge ${o.delivered?'badge-green':'badge-yellow'}" style="cursor:default">${o.delivered?'✓ Done':'Pending'}</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background:#F0F7F2">
+              <td colspan="7" style="font-weight:700;padding:0.75rem;font-size:0.82rem;color:var(--forest)">TOTALS</td>
+              <td style="font-family:'DM Mono',monospace;font-weight:700;padding:0.75rem">${fmt(totalRevenue)}</td>
+              <td style="font-family:'DM Mono',monospace;font-weight:700;padding:0.75rem;color:var(--green)">${fmt(totalPaid)}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>`;
+}
+
+// ─── PDF ─────────────────────────────────────────────────────────────────────
+function downloadPDF() {
+  const month = document.getElementById('report-month').value;
+  if (!month) { toast('⚠️ Select a month first.'); return; }
+  const filtered = orders.filter(o=>o.date.startsWith(month));
+  if (!filtered.length) { toast('No orders for this month.'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
+  const monthLabel = new Date(month+'-01').toLocaleString('en-ZA',{month:'long',year:'numeric'});
+  const rows = [...filtered].sort((a,b)=>a.date.localeCompare(b.date));
+  const totalRevenue = filtered.reduce((s,o)=>s+o.total,0);
+  const totalPaid    = filtered.filter(o=>o.paid).reduce((s,o)=>s+o.total,0);
+  const totalUnpaid  = totalRevenue - totalPaid;
+
+  // Forest header
+  doc.setFillColor(19,39,31);
+  doc.rect(0,0,297,30,'F');
+  // Accent strip
+  doc.setFillColor(76,175,125);
+  doc.rect(0,30,297,2,'F');
+
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(18);
+  doc.text('TenTen Paper Towel CRM', 14, 13);
+  doc.setFontSize(9);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(180,220,195);
+  doc.text(`Monthly Sales Report — ${monthLabel}`, 14, 21);
+  doc.text(`Generated: ${new Date().toLocaleDateString('en-ZA')}`, 220, 21);
+
+  // Summary boxes
+  const summaryY = 38;
+  const boxes = [['Total Orders',filtered.length],['Revenue',fmt(totalRevenue)],['Paid',fmt(totalPaid)],['Outstanding',fmt(totalUnpaid)]];
+  boxes.forEach((b,i)=>{
+    const x = 14 + i*68;
+    doc.setFillColor(240,247,242);
+    doc.setDrawColor(195,220,200);
+    doc.roundedRect(x,summaryY,62,16,2,2,'FD');
+    // accent top line
+    doc.setFillColor(76,175,125);
+    doc.rect(x,summaryY,62,1.5,'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.5); doc.setTextColor(90,107,90);
+    doc.text(b[0].toUpperCase(), x+4, summaryY+7);
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(19,39,31);
+    doc.text(String(b[1]), x+4, summaryY+14);
+  });
+
+  // Table
+  const headers = ['#','Date','Customer','Product','Qty','Unit Price','Special','Total','Paid','Delivered'];
+  const colW    = [12,22,40,35,12,22,30,22,16,20];
+  const startX  = 14;
+  let y = summaryY + 22;
+
+  doc.setFillColor(19,39,31);
+  doc.rect(startX,y,267,8,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica','bold');
+  let cx = startX+2;
+  headers.forEach((h,i)=>{ doc.text(h,cx,y+5.5); cx+=colW[i]; });
+  y += 8;
+
+  rows.forEach((o,idx)=>{
+    const prod=getProd(o.productId); const sp=o.specialId?getSpec(o.specialId):null;
+    const rd=[String(idx+1),o.date,o.customer.slice(0,22),(prod?.name||'—').slice(0,18),String(o.qty),fmt(o.unitPrice),sp?sp.name.slice(0,16):'—',fmt(o.total),o.paid?'Paid':'Unpaid',o.delivered?'Done':'Pending'];
+    if(idx%2===0){doc.setFillColor(240,247,242);} else {doc.setFillColor(255,255,255);}
+    doc.rect(startX,y,267,7,'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(7.5);
+    cx=startX+2;
+    rd.forEach((val,i)=>{
+      if(i===8) doc.setTextColor(o.paid?22:200,o.paid?163:38,o.paid?74:38);
+      else doc.setTextColor(19,39,31);
+      doc.text(val,cx,y+5); cx+=colW[i];
+    });
+    y+=7;
+    if(y>185){doc.addPage(); y=14;}
+  });
+
+  doc.setFillColor(19,39,31);
+  doc.rect(startX,y,267,8,'F');
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+  doc.text('TOTALS',startX+2,y+5.5);
+  cx=startX+2; colW.slice(0,7).forEach(w=>cx+=w);
+  doc.text(fmt(totalRevenue),cx,y+5.5); cx+=colW[7];
+  doc.setTextColor(76,175,125);
+  doc.text(fmt(totalPaid),cx,y+5.5);
+
+  doc.setTextColor(90,107,90); doc.setFont('helvetica','normal'); doc.setFontSize(7);
+  doc.text('TenTen Paper Towel CRM — Confidential Owner Report', 14, 200);
+  doc.text('Page 1', 280, 200, {align:'right'});
+
+  doc.save(`TenTen_Report_${month}.pdf`);
+  toast('✓ PDF downloaded!');
+}
+
+// ─── EVENT DELEGATION ────────────────────────────────────────────────────────
+document.body.addEventListener('click', function(e) {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const action = el.dataset.action;
+  const id     = el.dataset.id;
+
+  if (action === 'delete-order') {
+    if (!confirm('Delete this order? This cannot be undone.')) return;
+    const idx = orders.findIndex(o => o.id === id);
+    if (idx === -1) { toast('⚠️ Order not found'); return; }
+    orders.splice(idx, 1);
+    save(); renderOrders(); renderDashboard();
+    toast('Order deleted');
+  }
+
+  if (action === 'edit-order')       { editOrder(id); }
+
+  if (action === 'toggle-paid') {
+    const o = orders.find(o => o.id === id);
+    if (!o) return;
+    o.paid = !o.paid;
+    save(); renderOrders();
+    toast(o.paid ? '✓ Marked as paid' : 'Marked as unpaid');
+  }
+
+  if (action === 'toggle-delivered') {
+    const o = orders.find(o => o.id === id);
+    if (!o) return;
+    o.delivered = !o.delivered;
+    save(); renderOrders();
+    toast(o.delivered ? '✓ Marked as delivered' : 'Marked as pending');
+  }
+
+  if (action === 'delete-product') {
+    if (!confirm('Delete this product?')) return;
+    const idx = products.findIndex(p => p.id === id);
+    if (idx >= 0) products.splice(idx, 1);
+    save(); renderPricing(); toast('Product deleted');
+  }
+
+  if (action === 'edit-product')  { editProduct(id); }
+
+  if (action === 'delete-special') {
+    if (!confirm('Delete this special?')) return;
+    const idx = specials.findIndex(s => s.id === id);
+    if (idx >= 0) specials.splice(idx, 1);
+    save(); renderPricing(); toast('Special deleted');
+  }
+
+  if (action === 'edit-special')  { editSpecial(id); }
+});
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+(async () => {
+  // Show loading overlay
+  document.getElementById('loading-overlay').style.display = 'flex';
+  await loadData();
+  document.getElementById('loading-overlay').style.display = 'none';
+
+  const now = new Date();
+  document.getElementById('report-month').value =
+    `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  renderDashboard();
+})();
+</script>
+</body>
+</html>
